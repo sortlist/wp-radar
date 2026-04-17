@@ -1,0 +1,31 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Get version from tag
+        id: version
+        run: echo "version=${GITHUB_REF#refs/tags/v}" >> "$GITHUB_OUTPUT"
+
+      - name: Build plugin zip
+        run: |
+          mkdir sortlist-radar
+          cp sortlist-radar.php readme.txt uninstall.php sortlist-radar/
+          zip -r sortlist-radar-${{ steps.version.outputs.version }}.zip sortlist-radar/
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: sortlist-radar-${{ steps.version.outputs.version }}.zip
+          generate_release_notes: true
